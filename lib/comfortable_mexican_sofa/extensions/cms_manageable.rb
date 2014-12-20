@@ -1,3 +1,18 @@
+require 'liquid'
+
+class ComfyCmsLiquidTag < Liquid::Tag
+  def initialize(tag_name, cms_tag_params, tokens)
+     super
+     @cms_tag_params = cms_tag_params
+  end
+
+  def render(context)
+    "{{ cms:#{@cms_tag_params} }}"
+  end
+end
+
+Liquid::Template.register_tag('cms', ComfyCmsLiquidTag)
+
 # ActsAsCms is the module that drives all the logic around blocks and
 # blocks_attributes.
 module ComfortableMexicanSofa::CmsManageable
@@ -62,9 +77,12 @@ module ComfortableMexicanSofa::CmsManageable
     def render
       @tags = [] # resetting
       return '' unless layout
-      
+
+      liquid_template = Liquid::Template.parse(layout.merged_content)
+      liquid_output = liquid_template.render
+
       ComfortableMexicanSofa::Tag.process_content(
-        self, ComfortableMexicanSofa::Tag.sanitize_irb(layout.merged_content)
+        self, ComfortableMexicanSofa::Tag.sanitize_irb(liquid_output)
       )
     end
 
